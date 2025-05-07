@@ -1,0 +1,221 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD con JavaScript y Django - Relacional y NoSQL</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9fafc;
+            color: #333;
+        }
+        
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 2.5rem;
+            color: #4a90e2;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            background-color: #4a90e2;
+            padding: 10px 0;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .tab.active {
+            background-color: #357ab9;
+            border-radius: 5px;
+        }
+
+        .contenido {
+            display: none;
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .contenido.activo {
+            display: block;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        form input, form textarea, form button {
+            width: calc(100% - 20px);
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        form button {
+            background-color: #4a90e2;
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        form button:hover {
+            background-color: #357ab9;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul li {
+            background: #f0f0f0;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+
+        ul li:hover {
+            background-color: #e9e9e9;
+        }
+
+        ul li span {
+            font-weight: bold;
+        }
+
+        ul li button {
+            background: transparent;
+            border: none;
+            color: #4a90e2;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        ul li button:hover {
+            color: #357ab9;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            z-index: 10;
+        }
+
+        .modal.visible {
+            display: block;
+        }
+
+        .modal button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Siu-no-Guarani</h1>
+    
+    <div class="tabs">
+        <div id="tab-relacional" class="tab active">Algebra 2 (relacional)</div>
+        <div id="tab-nosql" class="tab">Algoritmos y programacion 1 (NoSQL)</div>
+    </div>
+
+    <div id="contenido-relacional" class="contenido" style="display: block;">
+        <h2>Algebra 2 (relacional)</h2>
+        
+        <div>
+            <h3>Agregar nota</h3>
+            <form id="form-create-relacional" method="POST">
+                {% csrf_token %}
+                <input type="text" id="nombre-relacional" placeholder="Nombre" required>
+                <input type="text" id="descripcion-relacional" placeholder="Descripción" required>
+                <input type="number" id="valor-relacional" placeholder="Nota" step="0.01" required>
+                <button type="submit">Agregar nota</button>
+            </form>
+        </div>
+
+        <div>
+            <h3>Lista de Notas de alumnos</h3>
+            <ul id="lista-productos-relacional"></ul>
+        </div>
+
+        <div id="modal-editar-relacional" style="display: none; background: #f0f0f0; padding: 20px; border: 1px solid #ccc;">
+            <h3>Editar Nota</h3>
+            <form id="form-edit-relacional" method="POST">
+                {% csrf_token %}
+                <input type="hidden" id="editar-id-relacional">
+                <input type="text" id="editar-nombre-relacional" placeholder="Nombre" required>
+                <input type="text" id="editar-descripcion-relacional" placeholder="Descripción" required>
+                <input type="number" id="editar-valor-relacional" placeholder="Nota" step="0.01" required>
+                <button type="submit">Guardar Cambios</button>
+            </form>
+            <button onclick="cerrarModalRelacional()">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="contenido-nosql" class="contenido">
+        <h2>Algoritmos y programacion 1 (NoSQL)</h2>
+        
+        <div>
+            <h3>Agregar nota</h3>
+            <form id="form-create-nosql" method="POST">
+                {% csrf_token %}
+                <input type="text" id="nombre-nosql" placeholder="Nombre" required>
+                <input type="text" id="descripcion-nosql" placeholder="Descripción" required>
+                <input type="number" id="valor-nosql" placeholder="Nota" step="0.01" required>
+                <textarea id="metadata-nosql" placeholder='Metadata (JSON válido, ej: {"color": "rojo"})'></textarea>
+                <button type="submit">Agregar nota</button>
+            </form>
+        </div>
+
+        <div>
+            <h3>Lista de Notas de alumnos</h3>
+            <ul id="lista-productos-nosql"></ul>
+        </div>
+
+        <div id="modal-editar-nosql" style="display: none; background: #f0f0f0; padding: 20px; border: 1px solid #ccc;">
+            <h3>Editar Nota</h3>
+            <form id="form-edit-nosql" method="POST">
+                {% csrf_token %}
+                <input type="hidden" id="editar-id-nosql">
+                <input type="text" id="editar-nombre-nosql" placeholder="Nombre" required>
+                <input type="text" id="editar-descripcion-nosql" placeholder="Descripción" required>
+                <input type="number" id="editar-valor-nosql" placeholder="Nota" step="0.01" required>
+                <textarea id="editar-metadata-nosql" placeholder="Metadata (JSON opcional, ej: {'color': 'rojo'})"></textarea>
+                <button type="submit">Guardar Cambios</button>
+            </form>
+            <button onclick="cerrarModalNoSQL()">Cancelar</button>
+        </div>
+    </div>
+
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>
